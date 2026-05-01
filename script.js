@@ -1,91 +1,78 @@
-// Simple typing effect for the hero section
-const textArray = ["Aspiring Software Engineer", "Java & React Developer", "AI & Tech Enthusiast"];
-let textIndex = 0;
-let charIndex = 0;
-const typingElement = document.querySelector(".typing-text");
+document.addEventListener('DOMContentLoaded', () => {
+    // Mobile Navigation Toggle
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    const links = document.querySelectorAll('.nav-links li a');
 
-function type() {
-  if (charIndex < textArray[textIndex].length) {
-    typingElement.textContent += textArray[textIndex].charAt(charIndex);
-    charIndex++;
-    setTimeout(type, 100); // typing speed
-  } else {
-    setTimeout(erase, 2000); // wait before erasing
-  }
-}
+    hamburger.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        // Hamburger animation
+        hamburger.classList.toggle('toggle');
+    });
 
-function erase() {
-  if (charIndex > 0) {
-    typingElement.textContent = textArray[textIndex].substring(0, charIndex - 1);
-    charIndex--;
-    setTimeout(erase, 50); // erasing speed
-  } else {
-    textIndex = (textIndex + 1) % textArray.length;
-    setTimeout(type, 500); // wait before typing next string
-  }
-}
+    // Close mobile menu when a link is clicked
+    links.forEach(link => {
+        link.addEventListener('click', () => {
+            if (navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+            }
+        });
+    });
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Start typing effect
-    if(typingElement) {
-        setTimeout(type, 1000);
-    }
+    // Active link highlighting on scroll
+    const sections = document.querySelectorAll('section');
+    const navItems = document.querySelectorAll('.nav-links a');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        const scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            if (scrollY >= (sectionTop - 200)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href').slice(1) === current) {
+                item.classList.add('active');
+            }
+        });
+
+        // Navbar blur effect on scroll
+        const navbar = document.querySelector('.navbar');
+        if (scrollY > 50) {
+            navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.5)';
+            navbar.style.background = 'rgba(10, 15, 28, 0.95)';
+        } else {
+            navbar.style.boxShadow = 'none';
+            navbar.style.background = 'rgba(10, 15, 28, 0.8)';
+        }
+    });
+
+    // Intersection Observer for scroll animations
+    const faders = document.querySelectorAll('.fade-in-up');
     
-    // Smooth scrolling is handled by CSS (scroll-behavior: smooth), 
-    // but just in case, we can add a slight reveal animation on scroll
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
+    const appearOptions = {
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
     };
 
-    const observer = new IntersectionObserver((entries, observer) => {
+    const appearOnScroll = new IntersectionObserver(function(entries, observer) {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+            if (!entry.isIntersecting) {
+                return;
+            } else {
+                entry.target.classList.add('visible');
                 observer.unobserve(entry.target);
             }
         });
-    }, observerOptions);
+    }, appearOptions);
 
-    // Apply initial state for fade-in elements
-    document.querySelectorAll('section, .project-card, .education-item').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-        observer.observe(el);
-    });
-
-    // Custom Cursor Logic
-    const cursorDot = document.querySelector("[data-cursor-dot]");
-    const cursorOutline = document.querySelector("[data-cursor-outline]");
-    
-    window.addEventListener("mousemove", function(e) {
-        const posX = e.clientX;
-        const posY = e.clientY;
-        
-        cursorDot.style.left = `${posX}px`;
-        cursorDot.style.top = `${posY}px`;
-        
-        // animate the outline to follow instantly, less trailing
-        cursorOutline.animate({
-            left: `${posX}px`,
-            top: `${posY}px`
-        }, { duration: 150, fill: "forwards" });
-    });
-
-    // Interactive Card Hover Logic (3D Tilt & Glow)
-    const interactiveCards = document.querySelectorAll(".interactive-card");
-    
-    interactiveCards.forEach(card => {
-        card.addEventListener("mousemove", e => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left; // x position within the element
-            const y = e.clientY - rect.top;  // y position within the element
-            
-            card.style.setProperty("--mouse-x", `${x}px`);
-            card.style.setProperty("--mouse-y", `${y}px`);
-        });
+    faders.forEach(fader => {
+        appearOnScroll.observe(fader);
     });
 });
